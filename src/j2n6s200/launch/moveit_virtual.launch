@@ -1,0 +1,3 @@
+<launch>
+    <include file="$(find j2n6s200_moveit)/launch/j2n6s200_virtual_robot_demo.launch"/>
+</launch>

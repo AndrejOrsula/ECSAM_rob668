@@ -1,0 +1,12 @@
+<launch>
+    <include file="$(find j2n6s200)/launch/gazebo.launch">
+        <arg name="kinova_robotType" value="j2n6s200"/>
+    </include>
+
+    <include file="$(find timed_roslaunch)/launch/timed_roslaunch.launch">
+        <arg name="time" value="5"/>
+        <arg name="pkg" value="j2n6s200_moveit"/>
+        <arg name="file" value="j2n6s200_gazebo_demo.launch"/>
+        <arg name="node_name" value="connected_moveit_timed_roslaunch"/>
+    </include>
+</launch>

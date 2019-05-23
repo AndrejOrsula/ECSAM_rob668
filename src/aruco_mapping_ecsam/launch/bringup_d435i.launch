@@ -1,0 +1,36 @@
+<launch>
+    <arg name="camera" default="d435i"/>
+
+    <include file="$(find d435i)/launch/camera.launch">
+        <arg name="camera" default="$(arg camera)"/>
+        <arg name="base_frame_id" default="$(arg camera)_color_optical_frame"/>
+        <arg name="enable_color" default="true"/>
+    </include>
+
+    <node pkg="aruco_mapping_ecsam" type="aruco_mapping" name="aruco_mapping_$(arg camera)" output="screen">
+        <remap from="image_raw" to="$(arg camera)/color/image_raw"/>
+        <remap from="aruco_poses" to="$(arg camera)/aruco_poses"/>
+        <param name="camera_frame" type="string" value="$(arg camera)_aruco_camera_frame"/>
+        <param name="marker_origin_frame" type="string" value="$(arg camera)_aruco_marker_origin_frame"/>
+        <param name="calibration_file" type="string" value="$(find aruco_mapping_ecsam)/config/$(arg camera).ini"/>
+        <param name="num_of_markers" type="int" value="10"/>
+        <param name="marker_size" type="double" value="0.124"/>
+        <param name="space_type" type="string" value=""/>
+        <!--    <param name="space_type" type="string" value="plane" />-->
+    </node>
+
+    <node pkg="aruco_mapping_ecsam" type="root_marker_static_tf_broadcaster"
+          name="root_marker_static_tf_broadcaster_$(arg camera)" output="screen">
+        <remap from="aruco_poses" to="$(arg camera)/aruco_poses"/>
+        <param name="root_frame" type="string" value="root"/>
+        <param name="marker_origin_frame" type="string" value="$(arg camera)_aruco_marker_origin_frame"/>
+    </node>
+
+    <!--This tf accounts for the orientation difference between the regular and optical frame of $(arg camera)-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg camera)_aruco_temp_frame_reassignment"
+          args="0 0 0  -0.5 0.5 -0.5 0.5  $(arg camera)_aruco_camera_frame $(arg camera)_color_frame"/>
+
+    <node pkg="tf" type="tf_echo" name="$(arg camera)_tf_echo" output="screen"
+          args="root $(arg camera)_depth_frame"/>
+
+</launch>

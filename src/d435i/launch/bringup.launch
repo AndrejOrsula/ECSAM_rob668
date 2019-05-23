@@ -1,0 +1,62 @@
+<launch>
+    <!--Launch camera itself-->
+    <arg name="camera" default="d435i"/>
+    <include file="$(find d435i)/launch/camera.launch">
+        <arg name="camera" default="$(arg camera)"/>
+        <arg name="base_frame_id" default="$(arg camera)_link"/>
+        <arg name="enable_color" default="false"/>
+    </include>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="d435i_link_frame_broadcaster"
+          args="0.019 -0.494 0.2415  0.47 0.61 0.069  root d435i_link"/>
+
+    <!--Manager for pcl nodelets-->
+    <node pkg="nodelet" type="nodelet" args="manager" name="$(arg camera)_pcl_manager" output="screen"/>
+
+    <!--This node converts depth image to PointCloud2 (while having full FOV)-->
+    <node pkg="nodelet" type="nodelet" args="load depth_image_proc/point_cloud_xyz $(arg camera)_pcl_manager"
+          name="$(arg camera)_depth_to_point_cloud2" output="screen">
+        <remap from="camera_info" to="$(arg camera)/depth/camera_info"/>
+        <remap from="image_rect" to="$(arg camera)/depth/image_rect_raw"/>
+        <remap from="points" to="$(arg camera)/depth/point_cloud_full"/>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" args="load pcl/PassThrough $(arg camera)_pcl_manager"
+          name="$(arg camera)_passthrough_x" output="screen">
+        <remap from="~input" to="$(arg camera)/depth/point_cloud_full"/>
+        <remap from="~output" to="$(arg camera)/depth/point_cloud_passthrough_x"/>
+        <param name="filter_field_name" value="x"/>
+        <param name="filter_limit_min" value="0.0"/>
+        <param name="filter_limit_max" value="0.9"/>
+        <param name="input_frame" value="root"/>
+        <param name="output_frame" value="root"/>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" args="load pcl/PassThrough $(arg camera)_pcl_manager"
+          name="$(arg camera)_passthrough_y" output="screen">
+        <remap from="~input" to="$(arg camera)/depth/point_cloud_passthrough_x"/>
+        <remap from="~output" to="$(arg camera)/depth/point_cloud_passthrough_y"/>
+        <param name="filter_field_name" value="y"/>
+        <param name="filter_limit_min" value="-0.75"/>
+        <param name="filter_limit_max" value="0.25"/>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" args="load pcl/PassThrough $(arg camera)_pcl_manager"
+          name="$(arg camera)_passthrough_z" output="screen">
+        <remap from="~input" to="$(arg camera)/depth/point_cloud_passthrough_y"/>
+        <remap from="~output" to="$(arg camera)/depth/point_cloud_passthrough_z"/>
+        <param name="filter_field_name" value="z"/>
+        <param name="filter_limit_min" value="-0.075"/>
+        <param name="filter_limit_max" value="0.5"/>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" args="load pcl/StatisticalOutlierRemoval $(arg camera)_pcl_manager"
+          name="$(arg camera)_outlier_removal_statistical" output="screen">
+        <remap from="~input" to="$(arg camera)/depth/point_cloud_passthrough_z"/>
+        <remap from="~output" to="$(arg camera)/depth/point_cloud"/>
+        <param name="mean_k" value="10"/>
+        <param name="stddev" value="3.5"/>
+        <param name="negative" value="false"/>
+    </node>
+
+</launch>

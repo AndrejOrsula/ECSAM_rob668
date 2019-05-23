@@ -1,0 +1,14 @@
+<launch>
+    <node pkg="segmentation" type="segmentation" name="segmantation"/>
+
+    <node pkg="nodelet" type="nodelet" args="manager" name="segmentation_voxel_grid_pcl_manager" output="screen"/>
+    <node pkg="nodelet" type="nodelet" args="load pcl/VoxelGrid segmentation_voxel_grid_pcl_manager"
+          name="segmentation_voxel_grid_octomap_voxel_grid" output="screen">
+        <remap from="~input" to="ecsam/octomap_point_cloud"/>
+        <remap from="~output" to="ecsam/octomap_point_cloud_transformed"/>
+        <param name="leaf_size" value="0.015"/>
+        <param name="input_frame" value="d435i_depth_optical_frame"/>
+        <param name="output_frame" value="d435i_depth_optical_frame"/>
+    </node>
+
+</launch>

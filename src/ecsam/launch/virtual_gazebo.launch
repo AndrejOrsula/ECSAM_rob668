@@ -1,0 +1,36 @@
+<launch>
+    <!--ET7-->
+    <include file="$(find et7)/launch/bringup.launch"/>
+    <include file="$(find aruco_mapping_ecsam)/launch/bringup_et7_scene_camera.launch"/>
+    <!--  <node pkg="tf2_ros" type="static_transform_publisher" name="et7_static_link_frame_broadcaster"-->
+    <!--        args="-0.096 0.030 0.433  -0.504 0.774 -0.352 0.154  root et7_scene_camera_frame" />-->
+
+
+    <!--D435i-->
+    <include file="$(find d435i)/launch/bringup.launch"/>
+
+
+    <!--Segmentation-->
+    <include file="$(find segmentation)/launch/segmentation.launch"/>
+
+
+    <!--Gaze correlation-->
+    <node pkg="ecsam_gaze_correlation" type="gaze_correlation" name="ecsam_gaze_correlation" output="screen"/>
+
+
+    <!--Grasp detection-->
+    <include file="$(find gpd_ecsam)/launch/j2n6s200_15_channels.launch"/>
+    <!--  <include file="$(find gpd_ecsam)/launch/j2n6s200_importance_sampling_15_channels.launch" />-->
+    <node pkg="gpd_ecsam" type="gpd_grasp_to_moveit" name="gpd_grasp_to_moveit" output="screen"/>
+
+
+    <!--Jaco motion-->
+    <node pkg="ecsam" type="ecsam" name="ecsam_virtual" output="screen">
+        <param name="robot_connected" value="false"/>
+    </node>
+
+
+    <!--Interface-->
+    <include file="$(find ecsam_interface)/launch/bringup.launch"/>
+
+</launch>
