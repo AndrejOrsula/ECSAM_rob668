@@ -38,7 +38,6 @@ $ roslaunch ecsam connected.launch
 ```
 
 
-
 ## Installation
 
 ### Additional dependencies
